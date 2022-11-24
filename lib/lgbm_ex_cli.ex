@@ -51,6 +51,22 @@ defmodule LGBMExCli do
     end
   end
 
+  @doc """
+  ReFit model on the params (to dig better parameters).
+  """
+  def refit(workdir, params) do
+    files = collect_cli_train_files(workdir)
+    current_params = parse_config_file(files)
+    new_params = Keyword.merge(current_params, params)
+    :ok = make_train_config_file(files, new_params)
+
+    if System.find_executable(cmd()) do
+      {:ok, num_iterations, eval_value} = exec_lightgbm_train(files, params)
+      {:ok, files.model, num_iterations, eval_value}
+    else
+      @ng_not_fount_cmd
+    end
+  end
 
   @doc """
   Predict data
@@ -140,6 +156,15 @@ defmodule LGBMExCli do
       label_column: 0,
       saved_feature_importance_type: 1
     ]
+  end
+
+  defp parse_config_file(files) do
+    File.read!(files.config)
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn row ->
+      [k, v] = String.split(row, " = ", trim: true)
+      {String.to_atom(k), v}
+    end)
   end
 
   defp join_data_as_csv(features, labels) do

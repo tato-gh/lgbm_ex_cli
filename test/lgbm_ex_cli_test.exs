@@ -31,6 +31,25 @@ defmodule LGBMExCliTest do
     end
   end
 
+  describe "refit" do
+    @describetag :tmp_dir
+
+    test "returns new result", c do
+      first_params = [num_iterations: 1000, early_stopping_round: 10, learning_rate: 0.1]
+      refit_params = [learning_rate: 0.2]
+
+      {features_t, labels_t} = SampleData.iris(:train)
+      {features_v, labels_v} = SampleData.iris(:test)
+      params =
+        SampleData.iris_params()
+        |> Keyword.merge(first_params)
+      {:ok, _model_path, first_num_iterations, _value} = LightGBM.fit(c.tmp_dir, {features_t, features_v}, {labels_t, labels_v}, params)
+      {:ok, _model_path, refit_num_iterations, _value} = LightGBM.refit(c.tmp_dir, refit_params)
+
+      assert refit_num_iterations < first_num_iterations
+    end
+  end
+
   describe "predict" do
     setup do
       workdir = Path.join(System.tmp_dir(), "#{__MODULE__}")
