@@ -36,7 +36,7 @@ defmodule LGBMExCliTest do
       [r0, _r1, r2] = LightGBM.predict(c.model_path, features)
 
       assert Enum.at(r0, 0) >= 0.5
-      # r1 is skipped the assert due to lack of accurate learning.
+      # skip r1 assert due to lack of accurate learning.
       # assert Enum.at(r1, 1) >= 0.5
       assert Enum.at(r2, 2) >= 0.5
     end

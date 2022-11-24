@@ -1,21 +1,59 @@
 # LGBMExCli
 
-**TODO: Add description**
+LightGBM CLI wrapper on Elixir.
 
-## Installation
+NOTE:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `lgbm_ex_cli` to your list of dependencies in `mix.exs`:
+- Beta version / Not stable
 
-```elixir
-def deps do
-  [
-    {:lgbm_ex_cli, "~> 0.1.0"}
-  ]
-end
+
+## Try with docker elixir
+
+```
+git clone https://github.com/tato-gh/lgbm_ex_cli
+cd lgbm_ex_cli
+docker run -it --rm -v `pwd`:/srv elixir:1.13 /bin/bash
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/lgbm_ex_cli>.
+**install LightGBM**
 
+In docker container
+
+```
+apt update && apt install -y cmake
+cd /root
+git clone --recursive https://github.com/microsoft/LightGBM.git
+cd LightGBM
+mkdir build && cd build
+cmake ..
+make -j4
+```
+
+refs:
+
+- [LightGBM Installation Guide](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html#linux)
+
+
+**ENVIRONMENT**
+
+```
+export LIGHTGBM_DIR=/root/LightGBM
+```
+
+**run test**
+
+```
+cd /srv
+MIX_ENV=test mix test
+```
+
+
+## With your application
+
+```
+[
+  {:lgbm_ex_cli, "0.1.0", git: "https://github.com/tato-gh/lgbm_ex_cli"}
+]
+```
+
+And you should prepare microsoft/LightGBM and set environment variables `LIGHTGBM_DIR`.
