@@ -9,26 +9,51 @@ defmodule LGBMExCli do
   }
 
   @doc """
-  Fit model.
+  Fit model
 
-  Returns the model filepath and evaluation value.
+  Returns the model filepath when not using early stoppping.
+  Returns the model filepath, num_iterations and eval_value when using early stopping.
+
+  The num_iterations and eval_value are taken from LightGBM CLI log string. It is shown when using early_stopping only.
   """
-  def fit(workdir, features, labels, params \\ []) do
+  def fit(workdir, features, labels, params \\ [])
+
+  def fit(workdir, features, labels, params) when is_list(features) do
     files = collect_cli_train_files(workdir)
     params = defacto_train_params(files) |> Keyword.merge(params)
     :ok = make_data_csv_file(features, labels, files.data)
     :ok = make_train_config_file(files, params)
 
     if System.find_executable(cmd()) do
-      {:ok, eval_value} = exec_lightgbm_train(files, params)
-      {:ok, files.model, eval_value}
+      {:ok, _num_iterations, _eval_value} = exec_lightgbm_train(files, params)
+      {:ok, files.model}
     else
       @ng_not_fount_cmd
     end
   end
 
+  def fit(workdir, {features_t, features_v}, {labels_t, labels_v}, params) do
+    files = collect_cli_train_files(workdir)
+    params =
+      defacto_train_params(files)
+      |> Keyword.merge(params)
+      |> Keyword.put(:valid_data, files.validation)
+      |> Keyword.put(:verbosity, 1)
+    :ok = make_data_csv_file(features_t, labels_t, files.data)
+    :ok = make_data_csv_file(features_v, labels_v, files.validation)
+    :ok = make_train_config_file(files, params)
+
+    if System.find_executable(cmd()) do
+      {:ok, num_iterations, eval_value} = exec_lightgbm_train(files, params)
+      {:ok, files.model, num_iterations, eval_value}
+    else
+      @ng_not_fount_cmd
+    end
+  end
+
+
   @doc """
-  Predict data.
+  Predict data
 
   Returns the cli outputs.
   """
@@ -49,9 +74,9 @@ defmodule LGBMExCli do
 
   defp exec_lightgbm_train(files, params) do
     {output_log, 0} = System.shell(cmd() <> " config=#{files.config}")
-    eval_value = fetch_eval(Keyword.get(params, :metric), output_log)
+    {num_iterations, eval_value} = fetch_eval(Keyword.get(params, :metric), output_log)
 
-    {:ok, eval_value}
+    {:ok, num_iterations, eval_value}
   end
 
   defp exec_lightgbm_prediction(files) do
@@ -149,13 +174,18 @@ defmodule LGBMExCli do
     |> Enum.reverse()
     |> Enum.find(& String.match?(&1, ~r/^Iteration:/))
     |> case do
-      nil -> nil
+      nil -> {nil, nil}
       result_log ->
-        Regex.scan(~r/#{metric} : (.+)/, result_log)
-        |> case do
-          [] -> nil
-          [[_, matched]] -> String.to_float(matched)
-        end
+        num_iterations =
+          Regex.scan(~r/Iteration:(\d+)/, result_log)
+          |> then(fn [[_, matched]] -> String.to_integer(matched) end)
+        eval_value =
+          Regex.scan(~r/#{metric} : ([\d\.]+)/, result_log)
+          |> case do
+            [] -> nil
+            [[_, matched]] -> String.to_float(matched)
+          end
+        {num_iterations, eval_value}
     end
   end
 

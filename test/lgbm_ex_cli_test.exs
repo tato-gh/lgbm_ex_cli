@@ -9,10 +9,25 @@ defmodule LGBMExCliTest do
     test "returns model_path and evaluation value", c do
       {features, labels} = SampleData.iris(:train)
       params = SampleData.iris_params()
+      {:ok, model_path} = LightGBM.fit(c.tmp_dir, features, labels, params)
 
-      {:ok, model_path, value} = LightGBM.fit(c.tmp_dir, features, labels, params)
       assert File.exists?(model_path)
-      assert value >= 0
+    end
+
+    test "stop early", c do
+      {features_t, labels_t} = SampleData.iris(:train)
+      {features_v, labels_v} = SampleData.iris(:test)
+      params =
+        SampleData.iris_params()
+        |> Keyword.merge([
+          num_iterations: 1000,
+          early_stopping_round: 2
+        ])
+      {:ok, _model_path, num_iterations, value} = LightGBM.fit(c.tmp_dir, {features_t, features_v}, {labels_t, labels_v}, params)
+
+      refute is_nil(value)
+      refute is_nil(num_iterations)
+      assert num_iterations <= 100
     end
   end
 
@@ -26,7 +41,7 @@ defmodule LGBMExCliTest do
 
       {features, labels} = SampleData.iris(:train)
       params = SampleData.iris_params()
-      {:ok, model_path, _value} = LightGBM.fit(workdir, features, labels, params)
+      {:ok, model_path} = LightGBM.fit(workdir, features, labels, params)
 
       {:ok, model_path: model_path}
     end
