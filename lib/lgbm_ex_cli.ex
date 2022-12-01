@@ -197,7 +197,7 @@ defmodule LGBMExCli do
     output_log
     |> String.split("\n")
     |> Enum.reverse()
-    |> Enum.find(& String.match?(&1, ~r/^Iteration:/))
+    |> Enum.find(& String.match?(&1, ~r/Iteration:/))
     |> case do
       nil -> {nil, nil}
       result_log ->
