@@ -5,7 +5,7 @@ defmodule LGBMExCli do
 
   @ng_not_fount_cmd {
     :ng,
-    "LightGBM is NOT executable. Please make `lightgbm` runnable, or set environment variable LIGHTGBM_DIR to run `${LIGHTGBM_DIR}/lightgbm`."
+    "LightGBM is NOT executable. Please set application config `lightgbm_cmd` to execute, like `config :lgbm_ex_cli, lightgbm_cmd: <Your microsoft/LightGBM cmd file path>`"
   }
 
   @doc """
@@ -24,7 +24,7 @@ defmodule LGBMExCli do
     :ok = make_data_csv_file(features, labels, files.data)
     :ok = make_train_config_file(files, params)
 
-    if System.find_executable(cmd()) do
+    if cmd_executable?() do
       {:ok, _num_iterations, _eval_value} = exec_lightgbm_train(files, params)
       {:ok, files.model}
     else
@@ -43,7 +43,7 @@ defmodule LGBMExCli do
     :ok = make_data_csv_file(features_v, labels_v, files.validation)
     :ok = make_train_config_file(files, params)
 
-    if System.find_executable(cmd()) do
+    if cmd_executable?() do
       {:ok, num_iterations, eval_value} = exec_lightgbm_train(files, params)
       {:ok, files.model, num_iterations, eval_value}
     else
@@ -60,7 +60,7 @@ defmodule LGBMExCli do
     new_params = Keyword.merge(current_params, params)
     :ok = make_train_config_file(files, new_params)
 
-    if System.find_executable(cmd()) do
+    if cmd_executable?() do
       {:ok, num_iterations, eval_value} = exec_lightgbm_train(files, params)
       {:ok, files.model, num_iterations, eval_value}
     else
@@ -78,12 +78,16 @@ defmodule LGBMExCli do
     :ok = make_data_csv_file(features, files.data)
     :ok = make_prediction_config_file(files)
 
-    if System.find_executable(cmd()) do
+    if cmd_executable?() do
       {_, 0} = exec_lightgbm_prediction(files)
       read_result(files)
     else
       @ng_not_fount_cmd
     end
+  end
+
+  defp cmd_executable? do
+    if cmd() && System.find_executable(cmd()), do: true, else: false
   end
 
   defp cmd, do: Application.get_env(:lgbm_ex_cli, :lightgbm_cmd)

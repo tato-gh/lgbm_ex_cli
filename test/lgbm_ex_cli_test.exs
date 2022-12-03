@@ -75,4 +75,37 @@ defmodule LGBMExCliTest do
       assert Enum.at(r2, 2) >= 0.5
     end
   end
+
+  describe "errors" do
+    setup do
+      workdir = Path.join(System.tmp_dir(), "#{__MODULE__}")
+      File.mkdir_p!(workdir)
+
+      cmd = Application.get_env(:lgbm_ex_cli, :lightgbm_cmd)
+      Application.put_env(:lgbm_ex_cli, :lightgbm_cmd, nil)
+
+      on_exit(fn ->
+        File.rm_rf!(workdir)
+        Application.put_env(:lgbm_ex_cli, :lightgbm_cmd, cmd)
+      end)
+
+      {:ok, workdir: workdir}
+    end
+
+    test "fit returns message when lightgbm cmd is not found", c do
+      {:ng, msg} = LightGBM.fit(c.workdir, [], [])
+      assert String.match?(msg,~r/\ALightGBM is NOT executable/)
+    end
+
+    test "refit returns message when lightgbm cmd is not found", c do
+      File.touch!(Path.join(c.workdir, "train_conf.txt"))
+      {:ng, msg} = LightGBM.refit(c.workdir, [])
+      assert String.match?(msg,~r/\ALightGBM is NOT executable/)
+    end
+
+    test "predict returns message when lightgbm cmd is not found", c do
+      {:ng, msg} = LightGBM.predict(c.workdir <> "/model.txt", [])
+      assert String.match?(msg,~r/\ALightGBM is NOT executable/)
+    end
+  end
 end
