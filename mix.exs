@@ -1,14 +1,23 @@
 defmodule LGBMExCli.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/tato-gh/lgbm_ex_cli"
+
   def project do
     [
       app: :lgbm_ex_cli,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      # Docs
+      name: "LGBMExCli",
+      description: "microsoft/LightGBM CLI simple wrapper",
+      source_url: @source_url,
+      docs: docs(),
+      package: package()
     ]
   end
 
@@ -26,8 +35,23 @@ defmodule LGBMExCli.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      api_reference: false,
+      extras: ["README.md"]
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["ta.to."],
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => @source_url}
     ]
   end
 end
