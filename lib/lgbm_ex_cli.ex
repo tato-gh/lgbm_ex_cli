@@ -1,6 +1,6 @@
 defmodule LGBMExCli do
   @moduledoc """
-  Documentation for `LGBMExCli`.
+  LGBMExCli is a wrapper library for microsoft/LightGBM.
   """
 
   @ng_not_fount_cmd {
@@ -9,12 +9,16 @@ defmodule LGBMExCli do
   }
 
   @doc """
-  Fit model
+  Fit model.
 
-  Returns the model filepath when not using early stoppping.
-  Returns the model filepath, num_iterations and eval_value when using early stopping.
+  When not using early stopping, then returns the model filepath only.
+  When using early stopping, then returns the model filepath, num_iterations and eval_value.
 
-  The num_iterations and eval_value are taken from LightGBM CLI log string. It is shown when using early_stopping only.
+  In practice, the behaviour provided by this function can be achieved with:
+
+      fit(workdir, features, labels, [objective: "multiclass", ...])
+      fit(workdir, {features, features_validation}, {labels, labels_validation}, [objective: "multiclass", ...])
+
   """
   def fit(workdir, features, labels, params \\ [])
 
@@ -52,7 +56,8 @@ defmodule LGBMExCli do
   end
 
   @doc """
-  ReFit model on the params (to dig better parameters).
+  Refit the model with specified params.
+  It is useful to explore parameters.
   """
   def refit(workdir, params) do
     files = collect_cli_train_files(workdir)
@@ -69,9 +74,7 @@ defmodule LGBMExCli do
   end
 
   @doc """
-  Predict data
-
-  Returns the cli outputs.
+  Predict data. Returns the cli outputs.
   """
   def predict(model_file, features) do
     files = collect_cli_prediction_files(model_file)

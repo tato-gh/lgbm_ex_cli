@@ -1,6 +1,6 @@
 # LGBMExCli
 
-LightGBM CLI wrapper on Elixir.
+LGBMExCli is a wrapper library for microsoft/LightGBM CLI, implemented by Elixir.
 
 Functions
 
@@ -83,7 +83,7 @@ results = LightGBM.predict(model_file, features_validation)
 **NOTE**
 
 - Beta version / Not stable
-- see [LGBMExCapi](https://github.com/tato-gh/lgbm_ex_capi) to predict small size data.
+- See [LGBMExCapi](https://github.com/tato-gh/lgbm_ex_capi) to predict small size data.
 
 
 ## Installation
