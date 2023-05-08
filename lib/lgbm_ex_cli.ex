@@ -215,7 +215,9 @@ defmodule LGBMExCli do
           Regex.scan(~r/#{metric} : ([\d\.]+)/, result_log)
           |> case do
             [] -> nil
-            [[_, matched]] -> String.to_float(matched)
+            [[_, matched]] ->
+              String.contains?(matched, ".")
+              |> (if do: String.to_float(matched), else: String.to_integer(matched))
           end
         {num_iterations, eval_value}
     end
